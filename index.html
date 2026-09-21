@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunda Shelf Field Key</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e6ddc2;
+    --paper-dark:#d9cea9;
+    --ink:#221d13;
+    --forest:#233c2b;
+    --forest-dark:#152018;
+    --moss:#6b7a4f;
+    --rust:#9b5330;
+    --gold:#a9822e;
+    --error:#8b3a3a;
+    --card-shadow: 0 1px 0 rgba(34,29,19,.08), 0 12px 24px -12px rgba(34,29,19,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(255,255,255,.25), transparent 40%),
+      repeating-linear-gradient(0deg, rgba(34,29,19,.02) 0px, rgba(34,29,19,.02) 1px, transparent 1px, transparent 3px);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    padding: 28px 16px 64px;
+  }
+  .wrap{ max-width: 620px; margin: 0 auto; }
+
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+    gap: 16px;
+  }
+  header h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(26px, 5vw, 34px);
+    line-height: 1.05;
+    margin:0;
+  }
+  header p{
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--forest);
+    max-width: 34ch;
+  }
+  .tally{
+    text-align:right;
+    font-family:'Fraunces', serif;
+    flex-shrink:0;
+  }
+  .tally .num{ font-size: 30px; font-weight:600; color: var(--forest); display:block; line-height:1; }
+  .tally .lbl{ font-size: 10px; letter-spacing:.04em; color: var(--ink); opacity:.65; }
+  .tally .streak{ font-size:12px; color:var(--rust); margin-top:2px; }
+
+  .sheet{
+    background: #f4efdd;
+    border: 1px solid rgba(34,29,19,.25);
+    box-shadow: var(--card-shadow);
+    padding: 16px;
+    position: relative;
+  }
+  .sheet::before{
+    content:"";
+    position:absolute; inset: 7px;
+    border: 1px dashed rgba(34,29,19,.28);
+    pointer-events:none;
+  }
+
+  .photo-frame{
+    position:relative;
+    background: var(--forest-dark);
+    aspect-ratio: 4/3;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .photo-frame img{
+    width:100%; height:100%; object-fit: cover; display:block;
+  }
+  .photo-frame .state-msg{
+    color: #cfd8c4; font-size: 14px; text-align:center; padding: 24px; font-family:'Inter';
+  }
+  .attribution{
+    font-size: 10px; color: rgba(34,29,19,.55); text-align:right; padding: 5px 2px 0;
+  }
+  .attribution a{ color: inherit; }
+
+  .clue-strip{
+    display:flex; flex-wrap:wrap; gap: 8px;
+    margin: 14px 0 4px;
+  }
+  .clue-chip{
+    font-size: 12.5px;
+    padding: 6px 11px;
+    border: 1px solid rgba(34,29,19,.3);
+    background: var(--paper);
+    color: var(--ink);
+    cursor:pointer;
+    font-family:'Inter';
+    transition: background .15s ease;
+  }
+  .clue-chip:hover{ background: var(--paper-dark); }
+  .clue-chip[data-revealed="true"]{
+    background: transparent;
+    border-style: dashed;
+    cursor: default;
+    color: var(--forest);
+  }
+  .clue-chip .chip-value{ font-weight:600; }
+
+  form.guess{
+    margin-top: 18px;
+    border-top: 1px solid rgba(34,29,19,.2);
+    padding-top: 16px;
+  }
+  .field-row{
+    display:grid;
+    grid-template-columns: 84px 1fr;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 9px;
+  }
+  .field-row label{
+    font-family:'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--forest);
+  }
+  .field-row input{
+    font-family:'Inter'; font-size: 15px;
+    padding: 8px 10px;
+    border: 1px solid rgba(34,29,19,.4);
+    background: #fbf8ee;
+    color: var(--ink);
+  }
+  .field-row input:focus{ outline: 2px solid var(--gold); outline-offset:1px; }
+  .field-row .opt{ font-size: 10px; opacity:.55; font-family:'Inter'; font-style:normal; }
+
+  .actions{ display:flex; gap:10px; margin-top: 14px; flex-wrap:wrap; }
+  button{
+    font-family:'Inter'; font-weight:600; font-size: 14px;
+    padding: 10px 18px;
+    border: none;
+    cursor:pointer;
+  }
+  .btn-primary{ background: var(--forest); color: #f4efdd; }
+  .btn-primary:hover{ background: var(--forest-dark); }
+  .btn-ghost{ background: transparent; color: var(--ink); border: 1px solid rgba(34,29,19,.4); }
+  .btn-ghost:hover{ background: rgba(34,29,19,.06); }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .verdict{
+    margin-top: 16px;
+    border: 1px solid rgba(34,29,19,.25);
+    background: var(--paper);
+    padding: 14px 16px;
+  }
+  .verdict .row{ display:flex; justify-content:space-between; gap:12px; padding: 4px 0; font-size: 14px; }
+  .verdict .row .yours{ opacity:.7; }
+  .verdict .row.correct .status{ color: var(--forest); font-weight:600; }
+  .verdict .row.wrong .status{ color: var(--error); font-weight:600; }
+  .verdict .name{
+    font-family:'Fraunces', serif; font-style: italic; font-size: 20px;
+    margin: 2px 0 10px;
+    color: var(--ink);
+  }
+  .verdict .common{ font-family:'Inter'; font-style: normal; font-size:13px; opacity:.7; }
+  .verdict .score-line{
+    font-family:'Fraunces', serif; font-weight:600; color: var(--rust);
+    margin-top: 10px; font-size: 15px;
+  }
+  .verdict .link a{ font-size:12px; color: var(--forest); }
+
+  footer{
+    text-align:center; font-size: 11px; color: var(--ink); opacity:.5;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 420px){
+    .field-row{ grid-template-columns: 68px 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Sunda Shelf<br>Field Key</h1>
+      <p>Live, research-grade records pulled from iNaturalist. Guess family, genus, and species.</p>
+    </div>
+    <div class="tally">
+      <span class="num" id="scoreNum">0</span>
+      <span class="lbl">POINTS</span>
+      <div class="streak" id="streakLine">streak 0</div>
+    </div>
+  </header>
+
+  <div class="sheet">
+    <div class="photo-frame" id="photoFrame">
+      <div class="state-msg">Loading a record…</div>
+    </div>
+    <div class="attribution" id="attribution"></div>
+
+    <div class="clue-strip" id="clueStrip"></div>
+
+    <form class="guess" id="guessForm">
+      <div class="field-row">
+        <label for="fFamily">Family</label>
+        <input id="fFamily" autocomplete="off" placeholder="e.g. Nepenthaceae">
+      </div>
+      <div class="field-row">
+        <label for="fGenus">Genus</label>
+        <input id="fGenus" autocomplete="off" placeholder="e.g. Nepenthes">
+      </div>
+      <div class="field-row">
+        <label for="fSpecies">Species <span class="opt">(optional, epithet only)</span></label>
+        <input id="fSpecies" autocomplete="off" placeholder="e.g. ampullaria">
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn-primary" id="checkBtn">Check identification</button>
+        <button type="button" class="btn-ghost" id="skipBtn">Skip this one</button>
+      </div>
+    </form>
+
+    <div class="verdict" id="verdict" style="display:none;"></div>
+  </div>
+
+  <footer>Data &amp; photos © their iNaturalist observers, used under the license shown per record.</footer>
+</div>
+
+<script>
+// Rough bounding box covering the Sunda Shelf: Malay Peninsula, Sumatra, Borneo, Java, Bangka-Belitung
+const BOUNDS = { swlat: -8.5, swlng: 94.5, nelat: 7.5, nelng: 119.5 };
+
+let current = null;      // { observation, taxon, answerKey }
+let hintsUsed = { order:false, locality:false, family:false };
+let score = Number(localStorage.getItem('ssfk_score') || 0);
+let streak = Number(localStorage.getItem('ssfk_streak') || 0);
+
+const els = {
+  photoFrame: document.getElementById('photoFrame'),
+  attribution: document.getElementById('attribution'),
+  clueStrip: document.getElementById('clueStrip'),
+  form: document.getElementById('guessForm'),
+  fFamily: document.getElementById('fFamily'),
+  fGenus: document.getElementById('fGenus'),
+  fSpecies: document.getElementById('fSpecies'),
+  checkBtn: document.getElementById('checkBtn'),
+  skipBtn: document.getElementById('skipBtn'),
+  verdict: document.getElementById('verdict'),
+  scoreNum: document.getElementById('scoreNum'),
+  streakLine: document.getElementById('streakLine'),
+};
+
+function paintTally(){
+  els.scoreNum.textContent = score;
+  els.streakLine.textContent = 'streak ' + streak;
+  localStorage.setItem('ssfk_score', score);
+  localStorage.setItem('ssfk_streak', streak);
+}
+paintTally();
+
+function photoUrl(u){
+  return u.replace('/square.', '/medium.');
+}
+
+function rankFrom(chain, rank){
+  return chain.find(t => t.rank === rank) || null;
+}
+
+function buildAnswerKey(taxon){
+  const chain = [...(taxon.ancestors || []), taxon];
+  const family = rankFrom(chain, 'family');
+  const genus = taxon.rank === 'genus' ? taxon : rankFrom(chain, 'genus');
+  const order = rankFrom(chain, 'order');
+  const speciesFull = taxon.rank === 'species' ? taxon.name : null;
+  return {
+    family: family ? family.name : null,
+    genus: genus ? genus.name : null,
+    order: order ? order.name : null,
+    species: speciesFull,
+    epithet: speciesFull ? speciesFull.split(' ').slice(1).join(' ') : null,
+    common: taxon.preferred_common_name || null,
+  };
+}
+
+function monthName(dateStr){
+  if(!dateStr) return null;
+  const d = new Date(dateStr);
+  if(isNaN(d)) return null;
+  return d.toLocaleString('en', { month: 'long' });
+}
+
+async function fetchCandidate(){
+  const page = Math.floor(Math.random() * 45) + 1;
+  const url = `https://api.inaturalist.org/v1/observations?photos=true&quality_grade=research&iconic_taxa=Plantae`
+    + `&swlat=${BOUNDS.swlat}&swlng=${BOUNDS.swlng}&nelat=${BOUNDS.nelat}&nelng=${BOUNDS.nelng}`
+    + `&per_page=30&page=${page}&order_by=votes&order=desc`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('iNaturalist API returned ' + res.status);
+  const data = await res.json();
+  const pool = (data.results || []).filter(o =>
+    o.taxon &&
+    (o.taxon.rank === 'species' || o.taxon.rank === 'genus') &&
+    o.photos && o.photos.length &&
+    o.photos[0].url &&
+    o.photos[0].license_code
+  );
+  if(!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+async function newRound(){
+  hintsUsed = { order:false, locality:false, family:false };
+  els.verdict.style.display = 'none';
+  els.form.style.display = '';
+  els.fFamily.value = ''; els.fGenus.value = ''; els.fSpecies.value = '';
+  els.fFamily.disabled = false; els.fGenus.disabled = false; els.fSpecies.disabled = false;
+  els.checkBtn.disabled = true;
+  els.photoFrame.innerHTML = '<div class="state-msg">Fetching a live record from iNaturalist…</div>';
+  els.attribution.textContent = '';
+  els.clueStrip.innerHTML = '';
+
+  try{
+    let obs = null, tries = 0;
+    while(!obs && tries < 6){ tries++; obs = await fetchCandidate(); }
+    if(!obs){
+      els.photoFrame.innerHTML = '<div class="state-msg">No clean record turned up. Try again.</div>';
+      return;
+    }
+    const taxonRes = await fetch(`https://api.inaturalist.org/v1/taxa/${obs.taxon.id}`);
+    if(!taxonRes.ok) throw new Error('taxon lookup failed');
+    const taxonData = await taxonRes.json();
+    const taxon = taxonData.results[0];
+    const answerKey = buildAnswerKey(taxon);
+
+    if(!answerKey.family || !answerKey.genus){
+      // incomplete taxonomy chain, try once more
+      return newRound();
+    }
+
+    current = { observation: obs, taxon, answerKey };
+
+    const img = new Image();
+    img.alt = 'Plant record to identify';
+    img.src = photoUrl(obs.photos[0].url);
+    img.onload = () => {
+      els.photoFrame.innerHTML = '';
+      els.photoFrame.appendChild(img);
+    };
+    img.onerror = () => { newRound(); };
+
+    els.attribution.innerHTML = `Photo: ${escapeHtml(obs.photos[0].attribution || 'unknown')} · <a href="${obs.uri}" target="_blank" rel="noopener">view record</a>`;
+
+    renderClues();
+    els.checkBtn.disabled = false;
+  }catch(err){
+    els.photoFrame.innerHTML = `<div class="state-msg">Connection hiccup — ${escapeHtml(err.message)}. Try again.</div>`;
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderClues(){
+  els.clueStrip.innerHTML = '';
+  const { observation, answerKey } = current;
+  const locality = observation.place_guess || 'locality not recorded';
+  const month = monthName(observation.observed_on);
+
+  addChip('order', 'Order', answerKey.order, true);
+  addChip('locality', 'Locality & season', month ? `${locality} · ${month}` : locality, true);
+  addChip('family', 'Family', answerKey.family, false);
+}
+
+function addChip(key, label, value, revealedByDefault){
+  const chip = document.createElement('div');
+  chip.className = 'clue-chip';
+  const revealed = revealedByDefault || hintsUsed[key];
+  chip.dataset.revealed = revealed ? 'true' : 'false';
+  chip.innerHTML = revealed
+    ? `${label}: <span class="chip-value">${escapeHtml(value || 'unknown')}</span>`
+    : `Reveal ${label.toLowerCase()} clue`;
+  if(!revealed){
+    chip.addEventListener('click', () => {
+      hintsUsed[key] = true;
+      renderClues();
+    });
+  }
+  els.clueStrip.appendChild(chip);
+}
+
+els.form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if(!current) return;
+  const { answerKey } = current;
+
+  const guessFamily = els.fFamily.value.trim();
+  const guessGenus = els.fGenus.value.trim();
+  const guessSpecies = els.fSpecies.value.trim();
+
+  const norm = s => s.trim().toLowerCase();
+  const familyOk = guessFamily && norm(guessFamily) === norm(answerKey.family);
+  const genusOk = guessGenus && norm(guessGenus) === norm(answerKey.genus);
+  const speciesOk = answerKey.epithet && guessSpecies && norm(guessSpecies) === norm(answerKey.epithet);
+
+  let round = 0;
+  if(familyOk) round += hintsUsed.family ? 5 : 10;
+  if(genusOk) round += 15;
+  if(speciesOk) round += 20;
+
+  score += round;
+  streak = (familyOk || genusOk) ? streak + 1 : 0;
+  paintTally();
+
+  els.verdict.innerHTML = `
+    <div class="name">${escapeHtml(answerKey.species || (answerKey.genus + ' sp.'))}${answerKey.common ? ` <span class="common">— ${escapeHtml(answerKey.common)}</span>` : ''}</div>
+    <div class="row ${familyOk ? 'correct' : 'wrong'}">
+      <span>Family: <strong>${escapeHtml(answerKey.family)}</strong></span>
+      <span class="status">${familyOk ? 'correct' : (guessFamily ? `you said ${escapeHtml(guessFamily)}` : 'no answer')}</span>
+    </div>
+    <div class="row ${genusOk ? 'correct' : 'wrong'}">
+      <span>Genus: <strong>${escapeHtml(answerKey.genus)}</strong></span>
+      <span class="status">${genusOk ? 'correct' : (guessGenus ? `you said ${escapeHtml(guessGenus)}` : 'no answer')}</span>
+    </div>
+    ${answerKey.epithet ? `
+    <div class="row ${speciesOk ? 'correct' : 'wrong'}">
+      <span>Species: <strong>${escapeHtml(answerKey.epithet)}</strong></span>
+      <span class="status">${speciesOk ? 'correct' : (guessSpecies ? `you said ${escapeHtml(guessSpecies)}` : 'no answer')}</span>
+    </div>` : ''}
+    <div class="score-line">+${round} points this round</div>
+    <div class="link"><a href="${current.observation.uri}" target="_blank" rel="noopener">Full record on iNaturalist →</a></div>
+  `;
+  els.verdict.style.display = '';
+  els.checkBtn.disabled = true;
+  els.fFamily.disabled = true; els.fGenus.disabled = true; els.fSpecies.disabled = true;
+
+  const nextBtn = document.createElement('button');
+  nextBtn.type = 'button';
+  nextBtn.className = 'btn-primary';
+  nextBtn.textContent = 'Next record';
+  nextBtn.style.marginTop = '12px';
+  nextBtn.addEventListener('click', newRound);
+  els.verdict.appendChild(nextBtn);
+});
+
+els.skipBtn.addEventListener('click', () => {
+  streak = 0;
+  paintTally();
+  newRound();
+});
+
+newRound();
+</script>
+</body>
+</html>
